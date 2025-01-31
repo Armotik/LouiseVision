@@ -1,3 +1,6 @@
+import os
+os.environ["QT_QPA_PLATFORM"] = "xcb"
+
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QStatusBar, QPushButton, QVBoxLayout, QWidget
 from screen import run, stop

@@ -5,6 +5,7 @@ from screeninfo import get_monitors
 import mss
 import threading
 from ultralytics import YOLO
+import torch
 
 capture_running = threading.Event()
 
@@ -17,14 +18,20 @@ def get_screen_coords(monitor_index=0):
         monitor = monitors[monitor_index]
         return monitor.x, monitor.y, monitor.width + monitor.x, monitor.height + monitor.y
 
-
 def capture_screen(coords, output):
     with mss.mss() as sct:
-        monitor = {"top": coords[1], "left": coords[0], "width": coords[2] - coords[0], "height": coords[3] - coords[1]}
+        monitor = {"top": coords[1], "left": coords[0], "width": coords[2] - coords[0], "height":(coords[3] - coords[1])//2}
+
         while not capture_running.is_set():
+            start_time = time.time()
             screen = np.asarray(sct.grab(monitor))
+            end_time = time.time()
+
+            print(f"Capture Time: {end_time - start_time:.4f} sec")  # Debugging performance
+
             screen = cv2.cvtColor(screen, cv2.COLOR_BGRA2BGR)
             output[0] = screen
+
 
 def resize_image(image, width, height):
     dim = (width, height)
@@ -35,9 +42,12 @@ def run(reisze_image=False):
     global capture_running
     capture_running.clear()
 
-    coords = get_screen_coords()
+    coords = get_screen_coords(0)
 
-    model = YOLO("yolo11x.pt")
+    if torch.cuda.is_available():
+        model = YOLO("yolo11x.pt")
+    else:
+        model = YOLO("yolov8n.pt")
 
     screen_output = [None]
     capture_thread = threading.Thread(target=capture_screen, args=(coords, screen_output))
@@ -51,7 +61,7 @@ def run(reisze_image=False):
     while not capture_running.is_set():
         if screen_output[0] is not None:
             if reisze_image:
-                display_screen = resize_image(screen_output[0], 1920, 1080)
+                display_screen = resize_image(screen_output[0], 640, 480)
             else:
                 display_screen = screen_output[0]
 
