@@ -65,6 +65,9 @@ def run(reisze_image=False, window_name="Screen", window_width=1280, window_heig
     Run the screen capture and object detection
     :param reisze_image: Flag to resize the captured screen
     """
+
+    # TODO: utilisation d'une pile pour stocker les images capturées avant le traitement par le modèle (pour éviter de perdre des images mais il va falloir gérer la mémoire et il va y avoir un décalage entre l'image capturée et l'image traitée)
+
     global capture_running
     capture_running.clear()
 
